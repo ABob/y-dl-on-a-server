@@ -20,30 +20,28 @@
 	</head>
 	<body>
 <div class="container">
-		<h1>Video-Downloads und Audio-Konvertierungen</h1>
-			<h3>How about an app?</h3>
-			Bastle eine Oberfläche, wie diese Website (vielleicht eine Web-App?). Sie nimmt Links entgegen (automatische Anbieten per "Teilen"), wandelt sie in eine youtube-dl-Kommando um und schickt es über einen Socket an den Server. Der führt den Befehl aus (und schickt eine Benachrichtigung an die App?). Per Slide-View kann man zu den Inhalten des Download-Ordners auf dem Server gelangen und sie auf das Telefon herunterladen (oder streamen?).
+		<h1>Video Downloads and Audio Conversions</h1>
 
 			<form id="formular" action="" method="post">
 				<label for="VideoLink">
-					<textarea class="form-control" rows="5" cols="50" id="links" name="links" placeholder="Links zu Videos, getrennt durch neue Zeile" required></textarea>
+					<textarea class="form-control" rows="5" cols="50" id="links" name="links" placeholder="Links to videos, separated through commas or new lines." required></textarea>
 				</label><br>
 				<label for="asMp3">
 					<input type="checkbox" id="asMp3" name="asMp3">
-					Zu MP3-Datei konvertieren?
+					Convert video to mp3 file?
 				</label><br>
-				<label for="Argumente">Weitere Argumente für Youtube-dl:
+				<label for="Argumente">additional parameters for Youtube-dl:
 					<input type="text" id="additionalArguments" name="additionalArguments">
 				</label><br>
 
-			<h3>Fertiges Kommando:</h3>
+			<h3>Complete command:</h3>
 			<div id="readyCommand"></div>
 
 			<button  type="submit" class="btn btn-primary" id="button">Go!</button>
 			</form>
 
-		<h3>Fortschrittsanzeige</h3><br>
-		<a href="files.php" class="btn btn-info">Zu den Downloads...</a>
+		<h3>Progress: -not yet implemented-</h3><br>
+		<a href="files.php" class="btn btn-info">Show downloaded files...</a>
 </div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

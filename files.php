@@ -63,7 +63,7 @@ function asHtml(){
 ?>
 		</ul>
 		<br>
-		<a href="y-dl.php" class="btn btn-info">Zurück</a>
+		<a href="y-dl.php" class="btn btn-info">Back</a>
 	</div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
