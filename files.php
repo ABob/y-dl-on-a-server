@@ -54,7 +54,7 @@ function asHtml(){
 	</head>
 	<body>
 	<div class="container">
-		<h1>Video-Downloads und Audio-Konvertierungen</h1>
+		<h1>Video Downloads and Audio Conversions</h1>
 		<ul>
 <?php
 	foreach(getFileList() as $file => $link){
