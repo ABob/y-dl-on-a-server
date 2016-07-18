@@ -1,2 +1,3 @@
 # Ignore everything in this directory. Except this file. It should stay empty. Later, the downloaded files will be stored in here.
+*
 !.gitignore
