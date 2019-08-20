@@ -1,20 +1,25 @@
 <?php
+require 'utils.php';
 
-function getFileList(){
-	$fileList = "";
+$fileList = createFileToLinkMap();
+
+//constant value changes must be applied to filesLogic.js !
+define("DELETE_BUTTON_ID_PREFIX", "del-btn-");
+
+function createFileToLinkMap(){
+    global $folder;
+
 	$fileList = array();
-	$folder = dirname($_SERVER['SCRIPT_FILENAME']).'/dls';
-	if ($handle = opendir($folder)) {
-		while (false !== ($file = readdir($handle))) {
-			if ($file != "." && $file != ".." && $file[0] != ".") {
+    foreach(createFileList() as $file) {
 				$link = $folder .'/'. htmlentities(str_replace("#","%23", $file));
-				$link = 'dls/'.htmlentities(str_replace("#","%23", $file));
 				$fileList[$file] = $link;
-			}
-		}
-		closedir($handle);
 	}
 	return $fileList;
+}
+
+function getFileList(){
+    global $fileList;
+    return $fileList;
 }
 
 if(isset($_GET["mode"])
@@ -29,7 +34,7 @@ function asJson(){
 	header('Content-Type: application/json');
 	echo json_encode($data);
 }
-	
+
 function asHtml(){
 ?>
 <!DOCTYPE html>
@@ -50,16 +55,14 @@ function asHtml(){
       <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
-		<script src="logic.js"></script>
+		<script src="filesLogic.js"></script>
 	</head>
 	<body>
 	<div class="container">
 		<h1>Video Downloads and Audio Conversions</h1>
-		<ul>
+		<ul class="list-group">
 <?php
-	foreach(getFileList() as $file => $link){
-		echo('<li><a href="'. $link .'">'.$file.'</a></li>');
-	}
+    printFilesInHtml();
 ?>
 		</ul>
 		<br>
@@ -76,4 +79,11 @@ function asHtml(){
 </html>
 <?php
 }
+
+function printFilesInHtml() {
+	foreach(getFileList() as $file => $link){
+		echo('<li class="list-group-item"><a href="'. $link .'">'.$file.'</a><button type="button" class="btn btn-secondary btn-sm pull-right align-middle" id="' . constant("DELETE_BUTTON_ID_PREFIX") . $file .'" onclick="deleteFile(\''. $file .'\')">x</button></li>');
+	}
+}
+	
 ?>
