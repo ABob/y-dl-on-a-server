@@ -48,6 +48,7 @@ function asHtml(){
 		<!-- Bootstrap -->
 		<!--link href="/css/bootstrap.min.css" rel="stylesheet"-->
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		<link rel="stylesheet" href="spinner.css">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -82,7 +83,7 @@ function asHtml(){
 
 function printFilesInHtml() {
 	foreach(getFileList() as $file => $link){
-		echo('<li class="list-group-item"><a href="'. $link .'">'.$file.'</a><button type="button" class="btn btn-secondary btn-sm pull-right align-middle" id="' . constant("DELETE_BUTTON_ID_PREFIX") . $file .'" onclick="deleteFile(\''. $file .'\')">x</button></li>');
+        echo('<li class="list-group-item"><a href="'. $link .'">'.$file.'</a><button type="button" class="btn btn-secondary btn-sm pull-right align-middle del-btn" id="' . constant("DELETE_BUTTON_ID_PREFIX") . $file .'">x</button></li>');
 	}
 }
 	
