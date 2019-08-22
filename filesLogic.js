@@ -3,31 +3,62 @@ window.onload = function() {
 
     var deleteButtons = document.getElementsByClassName("del-btn");
     Array.from(deleteButtons).forEach((button) => {
-        var file = button.id.replace(DELETE_BUTTON_ID_PREFIX, "");
+        var file = getFileNameFromButton(button);
         button.addEventListener('click', function () { 
-            var spinner = createSpinner();
-            sendAjaxRequest(spinner, button);
-            replaceButtonWithSpinner(button, spinner);
+            var confirmation = askForConfirmation(file);
+            if(confirmation) {
+                deleteFileOfButton(button);
+            }
         });
     });
 
-    function replaceButtonWithSpinner(button, spinner) {
-            button.style.display = 'none';
-            showBefore(button.id, spinner);
+    function askForConfirmation(filename) {
+        return confirm("Delete " + filename + "?");
     }
 
-    function deleteFile (filename)  {
-        window.alert("Delete "+filename+"?");
+    function getFileNameFromButton(button) {
+        return button.id.replace(DELETE_BUTTON_ID_PREFIX, "");
+    }
+
+    function replaceButtonWithSpinner(button, spinner) {
+        hide(button);
+        showBefore(button.id, spinner);
+    }
+
+    function hide(element) {
+        element.style.display = 'none';
+    }
+
+    function deleteFileOfButton(button)  {
+        var spinner = createSpinner();
+        sendAjaxRequest(spinner, button);
+        replaceButtonWithSpinner(button, spinner);
     }
 
     function sendAjaxRequest(spinner, button) {
-        var oReq = new XMLHttpRequest();
-        oReq.addEventListener("load", function() { 
-            window.alert(oReq.responseText);
+        var request = new XMLHttpRequest();
+        request.addEventListener("load", function() { 
+            handleAnswer(request.responseText, button);
             replaceSpinnerWithButton(spinner, button);
         });
-        oReq.open("POST", "deleteFile.php");
-        oReq.send();
+        request.open("POST", "deleteFile.php");
+        request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        request.send("file=" + getFileNameFromButton(button));
+    }
+
+    function handleAnswer(jsonAnswer, button) {
+        var json = JSON.parse(jsonAnswer);
+        if(json.success) {
+            removeRowOf(button);
+        } else {
+            window.alert("Error on server: " + json.error);
+        }
+    }
+
+    function removeRowOf(button) {
+        var row = button.parentNode;
+        hide(row);
     }
 
     function replaceSpinnerWithButton(spinner, button) {
