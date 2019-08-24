@@ -43,8 +43,14 @@ window.onload = function() {
         });
         request.open("POST", "deleteFile.php");
         request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        request.send("file=" + getFileNameFromButton(button));
+        //request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        request.setRequestHeader('Content-Type', 'application/json');
+        //request.send("file=" + getFileNameFromButton(button));
+        //var json = JSON.stringify({"file": getFileNameFromButton(button)});
+        var obj = {};
+        obj["file"] = getFileNameFromButton(button);
+        var json = JSON.stringify(obj);
+        request.send(json);
     }
 
     function handleAnswer(jsonAnswer, button) {
