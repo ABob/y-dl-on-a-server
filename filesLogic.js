@@ -1,4 +1,26 @@
 window.onload = function() {
+    importScript("utils.js", main);
+
+    //dynamic script loading to import utils.js
+    //see: https://stackoverflow.com/a/950146
+    function importScript(url, callback) {
+         // Adding a script tag that loads the wanted javascript file to the html document head 
+         var head = document.head;
+         var script = document.createElement('script');
+         script.type = 'text/javascript';
+         script.src = url;
+        
+         // Then bind the event to the callback function.
+         // There are several events for cross browser compatibility.
+         script.onreadystatechange = callback;
+         script.onload = callback;
+
+         // Fire the loading
+         head.appendChild(script);
+    }
+}
+
+function main() {
     const DELETE_BUTTON_ID_PREFIX = "del-btn-";
 
     var deleteButtons = document.getElementsByClassName("del-btn");
@@ -11,6 +33,7 @@ window.onload = function() {
             }
         });
     });
+
 
     function askForConfirmation(filename) {
         return confirm("Delete " + filename + "?");
@@ -31,26 +54,19 @@ window.onload = function() {
 
     function deleteFileOfButton(button)  {
         var spinner = createSpinner();
-        sendAjaxRequest(spinner, button);
+        requestDeletion(spinner, button);
         replaceButtonWithSpinner(button, spinner);
     }
 
-    function sendAjaxRequest(spinner, button) {
-        var request = new XMLHttpRequest();
-        request.addEventListener("load", function() { 
-            handleAnswer(request.responseText, button);
+    function requestDeletion(spinner, button) {
+        var onLoadEventListener = function(response) { 
+            handleAnswer(response.responseText, button);
             replaceSpinnerWithButton(spinner, button);
-        });
-        request.open("POST", "deleteFile.php");
-        request.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-        //request.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        request.setRequestHeader('Content-Type', 'application/json');
-        //request.send("file=" + getFileNameFromButton(button));
-        //var json = JSON.stringify({"file": getFileNameFromButton(button)});
+        };
         var obj = {};
         obj["file"] = getFileNameFromButton(button);
         var json = JSON.stringify(obj);
-        request.send(json);
+        sendAjaxJsonRequest("deleteFile.php", "POST", json, onLoadEventListener);
     }
 
     function handleAnswer(jsonAnswer, button) {

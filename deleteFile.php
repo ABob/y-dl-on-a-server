@@ -1,7 +1,6 @@
 <?php
 require "utils.php";
 
-//if($_SERVER['REQUEST_METHOD'] == "POST" && isset($_POST['file'])){
 if($_SERVER['REQUEST_METHOD'] == "POST"){
     $file = processRequest();
     $error = "";
