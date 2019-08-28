@@ -2,7 +2,8 @@
 require "utils.php";
 
 if($_SERVER['REQUEST_METHOD'] == "POST"){
-    $file = processRequest();
+    $json = processRequest();
+    $file = $json->file;
     $error = "";
     if (!isFileValidToRemove($file)){
         $error = "It's not allowed to remove files other than the previous downloaded!";
@@ -17,10 +18,6 @@ if($_SERVER['REQUEST_METHOD'] == "POST"){
 $answer = buildAnswer($success, $error);
 sendAnswer($answer);
 
-function processRequest() {
-    $json = file_get_contents('php://input');
-    return json_decode($json)->file;
-}
 function buildAnswer($success, $error) {
     return array("success" => $success, "error" => $error);
 }
@@ -39,10 +36,6 @@ function removeFile($file) {
     } else {
         return "No write access on file";
     }
-}
-
-function sendAnswer($result) {
-    echo json_encode($result);
 }
 
 ?>

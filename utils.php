@@ -24,4 +24,14 @@ function isNotFolderReference($file) {
 function isNotHiddenFile($file){
     return $file[0] != ".";
 }
+
+function processRequest() {
+    $json = file_get_contents('php://input');
+    return json_decode($json);
+}
+
+function sendAnswer($result) {
+    echo json_encode($result);
+}
+
 ?>
