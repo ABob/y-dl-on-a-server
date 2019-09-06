@@ -7,11 +7,9 @@ $fileList = createFileToLinkMap();
 define("DELETE_BUTTON_ID_PREFIX", "del-btn-");
 
 function createFileToLinkMap(){
-    global $folder;
-
 	$fileList = array();
     foreach(createFileList() as $file) {
-				$link = $folder .'/'. htmlentities(str_replace("#","%23", $file));
+				$link = getRelativeDownloadFolderPath() .'/'. htmlentities(str_replace("#","%23", $file));
 				$fileList[$file] = $link;
 	}
 	return $fileList;

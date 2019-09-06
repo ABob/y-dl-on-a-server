@@ -1,12 +1,58 @@
 <?php
 #$folder = dirname($_SERVER['SCRIPT_FILENAME']).'/dls';
-$folder = 'dls/';
+$downloadFolder = 'dls';
+$tempFolder = 'temp';
+
+function getScriptPath() {
+    return dirname($_SERVER['SCRIPT_FILENAME']);
+}
+
+function getRelativeDownloadFolderPath() {
+    global $downloadFolder;
+    return $downloadFolder;
+}
+
+function getAbsoluteDownloadFolderPath() {
+    global $downloadFolder;
+    return getScriptPath() . '/' . $downloadFolder;
+}
+
+function getRelativeTempFolderPath() {
+    global $tempFolder;
+    return $tempFolder;
+}
+
+function getAbsoluteTempFolderPath() {
+    global $tempFolder;
+    return getScriptPath() . '/' . $tempFolder;
+}
+
+function getKeywordForFinished() {
+    return "Finished";
+}
+
+function getKeywordForError() {
+    //defined by youtube-dl
+    return "ERROR:";
+}
+
+function getKeywordForStateEvent() {
+    return "STATE";
+}
+
+function getKeywordForSuccessEvent() {
+    return "SUCCESS";
+}
+
+function getKeywordForErrorEvent() {
+    return "ERROR";
+}
 
 function createFileList(){
-    global $folder;
+    global $downloadFolder;
 
 	$fileList = array();
-	if ($handle = opendir($folder)) {
+	if ($handle = opendir($downloadFolder)) {
 		while (false !== ($file = readdir($handle))) {
 			if (isNotFolderReference($file) && isNotHiddenFile($file)) {
                 array_push($fileList, $file);
@@ -32,6 +78,10 @@ function processRequest() {
 
 function sendAnswer($result) {
     echo json_encode($result);
+}
+
+function buildLogFilePath($id){
+    return getAbsoluteTempFolderPath() ."/". $id . ".log.txt";
 }
 
 ?>

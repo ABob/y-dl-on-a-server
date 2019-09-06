@@ -37,11 +37,10 @@
 
 			<h3>Complete command:</h3>
 			<div id="readyCommand"></div>
-<div id="result"></div>
-
 			<button  class="btn btn-primary" id="submitButton">Go!</button>
 
-		<h3>Progress: -not yet implemented-</h3><br>
+		<h3>Progress:</h3><br>
+        <div id="statusArea"></div>
 		<a href="files.php" class="btn btn-info">Show downloaded files...</a>
 </div>
 

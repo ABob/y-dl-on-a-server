@@ -50,6 +50,7 @@ function main() {
 
     function deleteFileOfButton(button)  {
         var spinner = createSpinner();
+        pullRight(spinner);
         requestDeletion(spinner, button);
         replaceButtonWithSpinner(button, spinner);
     }

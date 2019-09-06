@@ -3,21 +3,22 @@ require "utils.php";
 
 $success = false;
 $error = "Request format error";
-$requestId = null;
+$downloadId = uniqid("id", true);
 $cmd = buildCommand();
 
-execInBackground($cmd);
+$finalCmd = execInBackground($cmd, $downloadId);
         $success = true;
         $error = "";
         $error = $cmd;
-        $requestId = uniqid("id", true);
         $json = processRequest();
-$answer = buildAnswer($success, $requestId, $error, $json);
+$tempId = $json->tempId;
+$json->finalCmd = $finalCmd;
+$answer = buildAnswer($success, $downloadId, $tempId, $error, $json);
 sendAnswer($answer);
 
 function buildCommand() {
     if($_SERVER['REQUEST_METHOD'] == "POST"){
-        $output_dir = dirname($_SERVER['SCRIPT_FILENAME'])."/dls/%(title)s.%(ext)s";
+        $output_dir = getAbsoluteDownloadFolderPath()."/%(title)s.%(ext)s";
         $json = processRequest();
 
         #program
@@ -51,28 +52,38 @@ function buildCommand() {
 
         return $cmd;
     }
-
 }
 
-function buildAnswer($success, $requestId, $error, $json) {
-    return array("success" => $success, "requestId" => $requestId, "error" => $error, $json);
+function buildAnswer($success, $downloadId, $tempId, $error, $json) {
+    return array("success" => $success, "downloadId" => $downloadId, "tempId" => $tempId, "error" => $error, "finalCmd" => $json->finalCmd, $json);
 }
 
-function execInBackground($cmd) {
+function execInBackground($cmd, $downloadId) {
+    $tempDir = getAbsoluteTempFolderPath();
+
     if (substr(php_uname(), 0, 7) == "Windows"){
         pclose(popen("start /B ". $cmd, "r")); 
     }
     else {
-        //old way...didn't work
-        //exec($cmd . " > /dev/null &");  
-        
-        //new way from https://stackoverflow.com/a/45966
-        $outputFile = "testOutput.txt";
-        $pidFile = "testPid.txt";
-        exec(sprintf("%s > %s 2>&1 & echo $! >> %s", $cmd, $outputFile, $pidFile));
-        //$cmd .= " > /dev/null 2>/dev/null &";
-        //exec($cmd);
+        //execute command in background and write process id as well as output into separate files
+        //(from https://stackoverflow.com/a/45966)
+        $outputFile = buildLogFilePath($downloadId);
+        $pidFile = $tempDir . $downloadId . ".pid.txt";
+
+        //Add keyword to output after download to mark a finished process.
+        //In an error case, the keyword won't be added, but youtube-dl will automatically append an 'ERROR:' to log.
+        $cmd = appendKeywordToLog($cmd, getKeywordForFinished());
+
+        //with pid:
+        //$finalCommand = sprintf("%s > %s 2>&1 & echo $! >> %s", $cmd, $outputFile, $pidFile);
+        $finalCommand = sprintf("%s > %s 2>&1 &", $cmd, $outputFile);
+        exec($finalCommand);
+        return $finalCommand;
     }
 } 
+
+function appendKeywordToLog($cmd, $keyword) {
+    return $cmd .= " --exec 'echo ". $keyword ." '";
+}
 
 ?>

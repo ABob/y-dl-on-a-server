@@ -1,4 +1,5 @@
 <?php
+require 'utils.php';
 require 'xmlwriter.php';
 
 define("XmlFilePath", "genrss.xml");
@@ -10,7 +11,7 @@ printRssFeedFile();
 
 function generateRssFeedFile () {
 
-    $downloads = prepareRssItems(DownloadFolderPath);
+    $downloads = prepareRssItems(getRelativeDownloadFolderPath());
     $scriptPathRelativeUrl = calculateScriptPathUrl();
     createRssFile($scriptPathRelativeUrl, $downloads);
 }

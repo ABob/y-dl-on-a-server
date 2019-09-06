@@ -28,9 +28,7 @@ function isFileValidToRemove($file) {
 }
 
 function removeFile($file) {
-    global $folder;
-
-    $pathToFile = realpath($folder . $file);
+    $pathToFile = realpath(getAbsoluteDownloadFolderPath() .'/'. $file);
     if(is_writable($pathToFile)) {
         return unlink($pathToFile) ? "" : "Unlink failed";
     } else {

@@ -28,29 +28,6 @@ function main() {
 function setupSubmitButtonAction() {
 	var submitButton = document.getElementById('submitButton');
     submitButton.addEventListener('click', requestDownload);
-    //submitButton.addEventListener('click', requestTime);
-}
-
-function requestTime() {
-if(typeof(EventSource) !== "undefined") {
-      // Yes! Server-sent events support!
-       // Some code.....
-     var source = new EventSource("test.php");
-     // source.onmessage = function(event) {
-//        document.getElementById("result").innerHTML += event.data + "<br>";
-  //      }; 
-
-    source.addEventListener("ping", function(event) {
-          const eventList = document.getElementById("result");
-          const newElement = document.createElement("li");
-          const time = JSON.parse(event.data).time;
-          newElement.innerHTML = "ping at " + time;
-          eventList.appendChild(newElement);
-    });
-       } else {
-         // Sorry! No server-sent events support..
-           window.alert("Kann keine Updates empfangen!");
-         } 
 }
 
 function requestDownload() {
@@ -61,22 +38,27 @@ function requestDownload() {
         obj["links"] = getUrls();
         obj["asMp3"] = getAsMp3Field().checked;
         obj["additionalArguments"] = getAdditionalArgumentsField().value;
+        var tempId = Date.now();
+        obj["tempId"] = tempId;
         var json = JSON.stringify(obj);
         sendAjaxJsonRequest("download.php", "POST", json, onLoadEventListener);
 
-        var resultArea = document.getElementById('result');
-        addClass(resultArea, "spinner");
+        createStatusEntry(tempId);
 }
 
 function handleAnswer(jsonAnswer) {
     var json = JSON.parse(jsonAnswer);
+    var statusEntry = document.getElementById(json.tempId);
+    var status = json.downloadId + ": ";
     if(json.success) {
-        window.alert("Downloading!");
+        status += "downloading...";
     } else {
-        window.alert("Error on server: " + json.error);
+        status += "Error on server: " + json.error;
     }
-    var resultArea = document.getElementById('result');
-    removeClass(resultArea, "spinner");
+    statusEntry.id = json.downloadId;
+    statusEntry.innerHTML += status;
+
+    addStatusMonitor(statusEntry.id);
 }
 
 function setupCommandBuilder() {
@@ -120,3 +102,36 @@ function getAsMp3Field() {
     return document.getElementById("asMp3");
 }
 
+function getStatusArea() {
+    return document.getElementById("statusArea");
+}
+
+function createStatusEntry(id) {
+    var statusEntry = document.createElement('div');
+    statusEntry.id = id;
+
+    var spinner = createSpinner();
+    appendChild(spinner, statusEntry);
+
+    var statusArea = getStatusArea();
+    statusArea.innerHTML = statusEntry.outerHTML + statusArea.innerHTML;
+}
+
+function removeSpinnerOf(id) {
+    var statusEntry = document.getElementById(id);
+    var children = statusEntry.childNodes;
+    var numberOfChildren = children.length;
+
+    for (var i = 0; i < numberOfChildren; i++) {
+        if(children[i].classList.contains("spinner")) {
+            statusEntry.removeChild(children[i]);
+            break;
+        }
+    }
+}
+
+function addStatusMonitor(id) {
+    var eventSource = new EventSource('monitor.php?id=' + id);
+    //var eventSource = new EventSource('monitor.php');
+    eventSource.onmessage=function(event){window.alert(event.data);}
+}

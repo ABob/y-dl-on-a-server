@@ -12,7 +12,6 @@ function sendAjaxJsonRequest(url, type, jsonData, loadEventHandler) {
 function createSpinner() {
     var spinner = document.createElement('div');
     addClass(spinner, "spinner");
-    addClass(spinner, "pull-right");
     return spinner;
 }
 
@@ -32,6 +31,14 @@ function insertAfter(newElement, referenceNode) {
 
 function insertBefore(el, referenceNode) {
     referenceNode.parentNode.insertBefore(el, referenceNode);
+}
+
+function appendChild(childElement, referenceNode) {
+    referenceNode.innerHTML += childElement.outerHTML;
+}
+
+function pullRight(htmlElement) {
+    addClass(htmlElement, "pull-right");
 }
 
 function addClass(el, className) {
