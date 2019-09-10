@@ -4,11 +4,7 @@ require "utils.php";
 header("Cache-Control: no-cache");
 header("Content-Type: text/event-stream\n\n");
 
-$logPath = "log.monitor.txt";
-$log = fopen($logPath, "w");
-
 doLog("Starting monitor"); 
-//send("DEBUG", "DEBUG", print_r($_GET));
 $state = new State();
 doLog("GET: ". print_r($_GET, true));
 $id = getIdFromRequest();
@@ -18,10 +14,44 @@ if(is_null($id)){
 }
 
 
+doLog("Monitor started for id ". $id);
 $pathToLogFile = buildLogFilePath($id);
 doLog("Monitoring file ". $pathToLogFile);
+$pathToMetaFile = buildMetaFilePath($id);
+doLog("Meta file is ". $pathToMetaFile);
+sendCreationDate($id, $pathToMetaFile);
 sendStateUntilFinish($id, $pathToLogFile);
-closeStream($pathToLogFile);
+closeStream($pathToLogFile, $pathToMetaFile);
+
+function sendCreationDate($id, $pathToMetaFile) {
+    $date = extractDate($pathToMetaFile);
+    sendCreate($id, $date);
+}
+
+function extractDate($filePath) {
+    doLog("Extract date from ". $filePath);
+    $file = fopen($filePath, "r") or die("Unable to open file!");
+    // Output one line until end-of-file
+    while(!feof($file)) {
+        $line = fgets($file);
+        $date = parseDate($line);
+        doLog("Parsed date ". $date);
+        if(!empty($date)) {
+            break;
+        }
+    }
+    fclose($file);
+    doLog("Found date ". $date);
+    return empty($date) ? 0 : $date;
+}
+
+function parseDate($line) {
+    if(startsWith($line, getKeywordForCreationDate())) {
+        $date = trim(explode(":", $line)[1]);
+        return $date;
+    }
+    return 0;
+} 
 
 function sendStateUntilFinish($id, $pathToLogFile){
     $currentState = new State();
@@ -29,7 +59,7 @@ function sendStateUntilFinish($id, $pathToLogFile){
     while (!isEndingState($currentState)) {
         $newFileStats = getFileStats($pathToLogFile);
         if(fileHasChanged($fileStats, $newFileStats)){
-            $currentState = extractState($pathToLogFile);
+            $currentState = extractState($pathToLogFile, $currentState);
             if(isEndingState($currentState)){
                 doLog("Ending state detected...");
                 if(isFinished($currentState)){
@@ -105,16 +135,6 @@ function parseState($line, $oldState) {
     return $oldState;
 }
 
-//from https://stackoverflow.com/a/834355
-function startsWith($haystack, $needle) {
-    $length = strlen($needle);
-    return (substr($haystack, 0, $length) === $needle);
-}
-
-function contains($haystack, $needle) {
-    return strpos($haystack, $needle) !== false;
-}
-
 function isEndingState($state) {
     doLog("Is Ending state? $state is ". $state);
     return $state->hasState(State::ERROR) || $state->hasState(State::FINISH);
@@ -122,6 +142,10 @@ function isEndingState($state) {
 
 function isFinished($state) {
     return $state->hasState(State::FINISH);
+}
+
+function sendCreate($id, $date){
+    send(getKeywordForCreateEvent(), $id, $date);
 }
 
 function sendState($id, $state){
@@ -142,15 +166,11 @@ function send($eventType, $id, $state){
 }
 
 function buildMessage($eventType, $id, $message) {
-    echo 'event: '. $eventType .'\n';
-    echo 'data: {"'. $id .'": "' . $message . '"}';
+    echo 'event: '. $eventType . PHP_EOL;
+    $data = array("id" => $id, "message" => $message);
+    echo 'data: '. json_encode($data);
     echo "\n\n";
     doLog("Built Message. EventType: ". $eventType .", Message: ". $message);
-}
-
-function doLog($message) {
-    global $log;
-    fputs($log,$message."\n"); 
 }
 
 function sendEvent() {
@@ -162,17 +182,25 @@ function sendEvent() {
     doLog("Flush! AHAAAA ");
 }
 
-function closeStream($logFilePath) {
+function closeStream($logFilePath, $pathToMetaFile) {
+    removeFile($logFilePath);
+    removeFile($pathToMetaFile);
+}
+
+function removeFile($filePath) {
+    doLog("Try to remove file ". $filePath);
     for($i = 0; $i < 10; $i++) {
-        if(is_writable($logFilePath)) {
-            unlink($logFilePath);
-            doLog("Removed log file ". $logFilePath);
+        if(is_writable($filePath)) {
+            unlink($filePath);
+            doLog("Removed file ". $filePath);
+            return;
         } else {
             sleep(60);
         }
     }
-    doLog("Could not remove log file ". $logFilePath .": Not writable");
+    doLog("Could not remove file ". $logFilePath .": Not writable");
 }
+
 class State {
     const INIT = 0;
     const GET_METADATA = 1;
@@ -205,7 +233,7 @@ class State {
         case State::GET_METADATA : return "Receive meta data";
         case State::DOWNLOAD : return "Downloading";
         case State::EXEC : return "Executing post-download commands";
-        case State::FFMPEG : return "Converting wirh ffmpeg";
+        case State::FFMPEG : return "Converting with ffmpeg";
         case State::FINISH : return "Finished";
         case State::ERROR : return "Error occured";
         default : return "UNDEFINED STATE";

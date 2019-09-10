@@ -10,9 +10,21 @@ function sendAjaxJsonRequest(url, type, jsonData, loadEventHandler) {
 }
 
 function createSpinner() {
-    var spinner = document.createElement('div');
-    addClass(spinner, "spinner");
-    return spinner;
+    return createDivWithClass("spinner");
+}
+
+function createTdWithClass(className) {
+    return createHtmlTagWithClass('td', className);
+}
+
+function createDivWithClass(className) {
+    return createHtmlTagWithClass('div', className);
+}
+
+function createHtmlTagWithClass(tagName, className) {
+    var tag = document.createElement(tagName);
+    addClass(tag, className);
+    return tag;
 }
 
 function remove(element) {

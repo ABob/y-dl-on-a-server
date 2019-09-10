@@ -6,11 +6,15 @@ $error = "Request format error";
 $downloadId = uniqid("id", true);
 $cmd = buildCommand();
 
+$json = processRequest();
 $finalCmd = execInBackground($cmd, $downloadId);
         $success = true;
         $error = "";
         $error = $cmd;
-        $json = processRequest();
+
+$metaFile = buildMetaFilePath($downloadId);
+saveCreationDate($json->date, $metaFile);
+
 $tempId = $json->tempId;
 $json->finalCmd = $finalCmd;
 $answer = buildAnswer($success, $downloadId, $tempId, $error, $json);
@@ -68,19 +72,28 @@ function execInBackground($cmd, $downloadId) {
         //execute command in background and write process id as well as output into separate files
         //(from https://stackoverflow.com/a/45966)
         $outputFile = buildLogFilePath($downloadId);
-        $pidFile = $tempDir . $downloadId . ".pid.txt";
 
         //Add keyword to output after download to mark a finished process.
         //In an error case, the keyword won't be added, but youtube-dl will automatically append an 'ERROR:' to log.
         $cmd = appendKeywordToLog($cmd, getKeywordForFinished());
 
         //with pid:
-        //$finalCommand = sprintf("%s > %s 2>&1 & echo $! >> %s", $cmd, $outputFile, $pidFile);
         $finalCommand = sprintf("%s > %s 2>&1 &", $cmd, $outputFile);
         exec($finalCommand);
         return $finalCommand;
     }
 } 
+
+function saveCreationDate($date, $pathToMetaFile) {
+    doLog("Saving creation date ". $date ." in file ". $pathToMetaFile);
+    $file = fopen($pathToMetaFile, "w") or die("Unable to open file!");
+    if($file != false) {
+        fputs($file, getKeywordForCreationDate() .": ". $date. PHP_EOL);
+        doLog("Done writing");
+        fclose($file);
+        doLog("Closed file");
+    }
+}
 
 function appendKeywordToLog($cmd, $keyword) {
     return $cmd .= " --exec 'echo ". $keyword ." '";

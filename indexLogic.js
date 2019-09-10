@@ -1,5 +1,10 @@
+var STATUSENTRY_CLASSNAME_MESSAGE = "message";
+var STATUSENTRY_CLASSNAME_NAME = "name";
+var STATUSENTRY_CLASSNAME_DATE = "date";
+
 window.onload = function() {
     importScript("utils.js", main);
+
 
     //dynamic script loading to import utils.js
     //see: https://stackoverflow.com/a/950146
@@ -23,6 +28,7 @@ window.onload = function() {
 function main() {
     setupSubmitButtonAction();
     setupCommandBuilder();
+    showRunningDownloads();
 }
 
 function setupSubmitButtonAction() {
@@ -38,12 +44,15 @@ function requestDownload() {
         obj["links"] = getUrls();
         obj["asMp3"] = getAsMp3Field().checked;
         obj["additionalArguments"] = getAdditionalArgumentsField().value;
-        var tempId = Date.now();
+        var date = new Date();
+        obj["date"] = date.getTime();
+        var tempId = date.getTime();
         obj["tempId"] = tempId;
         var json = JSON.stringify(obj);
         sendAjaxJsonRequest("download.php", "POST", json, onLoadEventListener);
 
         createStatusEntry(tempId);
+        setInitialStateDescription(tempId, date);
 }
 
 function handleAnswer(jsonAnswer) {
@@ -51,12 +60,12 @@ function handleAnswer(jsonAnswer) {
     var statusEntry = document.getElementById(json.tempId);
     var status = json.downloadId + ": ";
     if(json.success) {
-        status += "downloading...";
+        status += "Initialized";
     } else {
         status += "Error on server: " + json.error;
     }
     statusEntry.id = json.downloadId;
-    statusEntry.innerHTML += status;
+    setStatusEntryMessage(json.downloadId, status);
 
     addStatusMonitor(statusEntry.id);
 }
@@ -102,36 +111,131 @@ function getAsMp3Field() {
     return document.getElementById("asMp3");
 }
 
-function getStatusArea() {
-    return document.getElementById("statusArea");
+function getStatusAreaBody() {
+    return document.getElementById("statusAreaBody");
 }
 
 function createStatusEntry(id) {
-    var statusEntry = document.createElement('div');
+    var statusEntry = document.createElement('tr');
     statusEntry.id = id;
+    statusEntry.addEventListener('click', function() {showDetails(id);} );
+    submitButton.addEventListener('click', requestDownload);
+
+    var dateSection = createStatusEntryDateSection();
+    appendChild(dateSection, statusEntry);
+
+    //var nameSection = createStatusEntryNameSection();
+    //appendChild(nameSection, statusEntry);
+
+    var messageSection = createStatusEntryMessageSection();
+    appendChild(messageSection, statusEntry);
 
     var spinner = createSpinner();
     appendChild(spinner, statusEntry);
 
-    var statusArea = getStatusArea();
-    statusArea.innerHTML = statusEntry.outerHTML + statusArea.innerHTML;
+    var statusArea = getStatusAreaBody();
+    statusArea.appendChild(statusEntry, statusArea);
+    //statusArea.innerHTML = statusEntry.outerHTML + statusArea.innerHTML;
+}
+
+function showDetails(id) {
+    window.alert("Here, details for id "+id + " will be shown in a modal.");
+}
+
+function createStatusEntryMessageSection() {
+    return createTdWithClass(STATUSENTRY_CLASSNAME_MESSAGE);
+}
+
+function createStatusEntryDateSection() {
+    return createTdWithClass(STATUSENTRY_CLASSNAME_DATE);
+}
+
+function createStatusEntryNameSection() {
+    return createTdWithClass(STATUSENTRY_CLASSNAME_NAME);
+}
+
+function setInitialStateDescription(id, date) {
+    setStatusEntryDate(id, date.toLocaleString("de-DE"));
+
+    setStatusEntryMessage(id, "Pending...");
+}
+
+function setStatusEntryMessage(id, message) {
+    var messageSection = getStatusEntryElement(id, STATUSENTRY_CLASSNAME_MESSAGE);
+    messageSection.innerHTML = message;
+}
+
+function setStatusEntryName(id, name) {
+    var nameSection = getStatusEntryElement(id, STATUSENTRY_CLASSNAME_NAME);
+    nameSection.innerHTML = name;
+}
+
+function setStatusEntryDate(id, date) {
+    var dateSection = getStatusEntryElement(id, STATUSENTRY_CLASSNAME_DATE);
+    dateSection.innerHTML = date;
+}
+
+function fillStatusEntryDate(id, timestamp) {
+    var dateSection = getStatusEntryElement(id, STATUSENTRY_CLASSNAME_DATE);
+    if(dateSection.innerHTML == "") {
+        var date = new Date(timestamp);
+        var dateString = date.toLocaleString("de-DE");
+        setStatusEntryDate(id, date.toLocaleString("de-DE"));
+    }
 }
 
 function removeSpinnerOf(id) {
-    var statusEntry = document.getElementById(id);
+    var spinner = getStatusEntryElement(id, "spinner");
+    getStatusEntry(id).removeChild(spinner);
+}
+
+function getStatusEntryElement(id, elementClass) {
+    var statusEntry = getStatusEntry(id);
     var children = statusEntry.childNodes;
     var numberOfChildren = children.length;
 
     for (var i = 0; i < numberOfChildren; i++) {
-        if(children[i].classList.contains("spinner")) {
-            statusEntry.removeChild(children[i]);
-            break;
+        if(children[i].classList.contains(elementClass)) {
+            return children[i];
         }
     }
+    return null;
+}
+
+function getStatusEntry(id) {
+    return document.getElementById(id);
 }
 
 function addStatusMonitor(id) {
     var eventSource = new EventSource('monitor.php?id=' + id);
-    //var eventSource = new EventSource('monitor.php');
-    eventSource.onmessage=function(event){window.alert(event.data);}
+
+    eventSource.addEventListener("ERROR", function(event){
+        setStatusEntryMessage(id, JSON.parse(event.data).message);
+        removeSpinnerOf(id);
+    });
+
+    eventSource.addEventListener("SUCCESS", function(event){
+        setStatusEntryMessage(id, JSON.parse(event.data).message);
+        removeSpinnerOf(id);
+    });
+
+    eventSource.addEventListener("STATE", function(event){
+        setStatusEntryMessage(id, JSON.parse(event.data).message);
+    });
+
+    eventSource.addEventListener("CREATION", function(event){
+        timestampAsString = JSON.parse(event.data).message;
+        fillStatusEntryDate(id, Number(timestampAsString));
+    });
+}
+
+function showRunningDownloads() {
+    sendAjaxJsonRequest("runningDownloads.php", "GET", null, function(ajaxResponse) {
+        var idArray = JSON.parse(ajaxResponse.responseText);
+        for(var i = 0; i < idArray.length; i++) {
+            var id = idArray[i];
+            createStatusEntry(id);
+            addStatusMonitor(id);
+        }
+    });
 }

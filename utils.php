@@ -2,6 +2,11 @@
 #$folder = dirname($_SERVER['SCRIPT_FILENAME']).'/dls';
 $downloadFolder = 'dls';
 $tempFolder = 'temp';
+$logFileSuffix = ".log.txt";
+$metaFileSuffix = ".meta.txt";
+
+$logPath = "log.monitor.txt";
+$log = fopen($logPath, "a");
 
 function getScriptPath() {
     return dirname($_SERVER['SCRIPT_FILENAME']);
@@ -36,6 +41,10 @@ function getKeywordForError() {
     return "ERROR:";
 }
 
+function getKeywordForCreateEvent() {
+    return "CREATION";
+}
+
 function getKeywordForStateEvent() {
     return "STATE";
 }
@@ -48,11 +57,18 @@ function getKeywordForErrorEvent() {
     return "ERROR";
 }
 
+function getKeywordForCreationDate() {
+    return "CREATED";
+}
+
 function createFileList(){
     global $downloadFolder;
+    return collectDirectoryFiles($downloadFolder);
+}
 
+function collectDirectoryFiles($folderPath) {
 	$fileList = array();
-	if ($handle = opendir($downloadFolder)) {
+	if ($handle = opendir($folderPath)) {
 		while (false !== ($file = readdir($handle))) {
 			if (isNotFolderReference($file) && isNotHiddenFile($file)) {
                 array_push($fileList, $file);
@@ -81,7 +97,33 @@ function sendAnswer($result) {
 }
 
 function buildLogFilePath($id){
-    return getAbsoluteTempFolderPath() ."/". $id . ".log.txt";
+    global $logFileSuffix;
+    return getAbsoluteTempFolderPath() ."/". $id .$logFileSuffix;
+}
+
+function buildMetaFilePath($id){
+    global $metaFileSuffix;
+    return getAbsoluteTempFolderPath() ."/". $id .$metaFileSuffix;
+}
+
+function getLogFileSuffix() {
+    global $logFileSuffix;
+    return $logFileSuffix;
+}
+
+function doLog($message) {
+    global $log;
+    fputs($log,$message."\n"); 
+}
+
+//from https://stackoverflow.com/a/834355
+function startsWith($haystack, $needle) {
+    $length = strlen($needle);
+    return (substr($haystack, 0, $length) === $needle);
+}
+
+function contains($haystack, $needle) {
+    return strpos($haystack, $needle) !== false;
 }
 
 ?>

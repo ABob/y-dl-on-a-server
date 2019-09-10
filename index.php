@@ -40,7 +40,21 @@
 			<button  class="btn btn-primary" id="submitButton">Go!</button>
 
 		<h3>Progress:</h3><br>
-        <div id="statusArea"></div>
+        <p>
+            <div id="statusArea">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>State</th>
+                            <th><!-- Leere Spalte für Spinner --></th>
+                        </tr>
+                    </thead>
+                    <tbody id="statusAreaBody">
+                    </tbody>
+                </table>
+            </div>
+        </p>
 		<a href="files.php" class="btn btn-info">Show downloaded files...</a>
 </div>
 
