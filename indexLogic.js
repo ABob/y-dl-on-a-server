@@ -116,9 +116,10 @@ function getStatusAreaBody() {
 }
 
 function createStatusEntry(id) {
-    var statusEntry = document.createElement('tr');
+    //var statusEntry = document.createElement('tr');
+    var statusEntry = cloneModalButtonPrototype();
     statusEntry.id = id;
-    statusEntry.addEventListener('click', function() {showDetails(id);} );
+    statusEntry.addEventListener('click', function() {showDetails(this.id);} );
     submitButton.addEventListener('click', requestDownload);
 
     var dateSection = createStatusEntryDateSection();
@@ -139,7 +140,14 @@ function createStatusEntry(id) {
 }
 
 function showDetails(id) {
-    window.alert("Here, details for id "+id + " will be shown in a modal.");
+    var obj = {};
+    obj["id"] = id;
+    var json = JSON.stringify(obj);
+    sendAjaxJsonRequest("details.php", "POST", json, function(response) {
+        document.getElementById("modalBody").innerHTML = response.responseText;
+        document.getElementById("modalTitleIdSection").innerHTML = id;
+        document.getElementById("modalTitleDateSection").innerHTML = getDateFor(id);
+    });
 }
 
 function createStatusEntryMessageSection() {
@@ -163,6 +171,10 @@ function setInitialStateDescription(id, date) {
 function setStatusEntryMessage(id, message) {
     var messageSection = getStatusEntryElement(id, STATUSENTRY_CLASSNAME_MESSAGE);
     messageSection.innerHTML = message;
+}
+
+function getDateFor(id) {
+    return getStatusEntryElement(id, STATUSENTRY_CLASSNAME_DATE).innerHTML;
 }
 
 function setStatusEntryName(id, name) {
@@ -239,3 +251,11 @@ function showRunningDownloads() {
         }
     });
 }
+
+function cloneModalButtonPrototype() {
+    var original = document.getElementById("modalRow");
+    var cloned = original.cloneNode(true);
+    cloned.classList.remove("hidden");
+    return cloned;
+}
+

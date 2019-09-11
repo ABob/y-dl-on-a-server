@@ -131,6 +131,8 @@ function parseState($line, $oldState) {
         $oldState->transitTo(State::FINISH);
     } elseif (startsWith($line, "ERROR")) {
         $oldState->transitTo(State::ERROR);
+    } elseif (startsWith($line, "Usage: youtube-dl")) {
+        $oldState->transitTo(State::ERROR);
     }
     return $oldState;
 }
