@@ -50,7 +50,7 @@ function appendChild(childElement, referenceNode) {
 }
 
 function pullRight(htmlElement) {
-    addClass(htmlElement, "pull-right");
+    addClass(htmlElement, "float-right");
 }
 
 function addClass(el, className) {
