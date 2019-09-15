@@ -18,14 +18,17 @@
 
             <label for="VideoLink">
                 <textarea class="form-control" rows="5" cols="50" id="links" name="links" placeholder="Links to videos, separated through commas or new lines." required></textarea>
-            </label><br>
-            <label for="asMp3">
-                <input type="checkbox" id="asMp3" name="asMp3">
-                Convert video to mp3 file?
-            </label><br>
-            <label for="Argumente">additional parameters for Youtube-dl:
-                <input type="text" id="additionalArguments" name="additionalArguments">
-            </label><br>
+            </label>
+            <p>
+                <label for="asMp3">
+                    <input type="checkbox" id="asMp3" name="asMp3">
+                    Convert video to mp3 file?
+                </label><br>
+                <label for="Argumente">Additional parameters for Youtube-dl:
+                    <input type="text" id="additionalArguments" name="additionalArguments">
+                </label><br>
+                <small class="text-muted">(see <a href="https://github.com/ytdl-org/youtube-dl/blob/master/README.md#options">the youtube-dl documentation</a> for options)</small>
+            </p>
 
             <h3>Complete command:</h3>
             <p>
