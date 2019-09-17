@@ -50,7 +50,20 @@ function asHtml(){
 	</head>
 	<body>
         <div class="container">
-            <h1>Video Downloads and Audio Conversions</h1>
+            <small>
+                <button id="rssButton" class="btn float-right" ><img id="rssIcon" title="RSS feed" src="img/RSS.png" alt="RSS" style="heigth: 1px">
+                </button><br>
+            </small>
+            <h1 id="title">Video Downloads and Audio Conversions</h1>
+            <p hidden>
+                <div id="rssLinkArea" class="input-group" hidden>
+                    <input id="rssLink" type="text" class="form-control">
+                    <div class="input-group-append">
+                        <button type="button" class="btn btn-secondary" id="rssLinkCopyButton">Copy</button>
+                    </div>
+                </div>
+            </p>
+
             <ul class="list-group">
 <?php
     printFilesInHtml();
