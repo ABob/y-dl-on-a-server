@@ -28,6 +28,7 @@ window.onload = function() {
 function main() {
     setupSubmitButtonAction();
     setupCommandBuilder();
+    mirrorInput();
     showRunningDownloads();
 }
 
@@ -84,14 +85,18 @@ function mirrorInput() {
     var urls = getUrls();
     urls = urls.replace(/\n/g, " ");
     urls = urls.replace(/,/g, " ");
-    var output = "youtube-dl ";
-    var asMp3 = getAsMp3Field();
-    if(asMp3.checked) {
-        output = output.concat(" ", "-x --audio-format mp3");
+
+    var output = "-";
+    if (urls.trim() != "") {
+        output = "youtube-dl ";
+        var asMp3 = getAsMp3Field();
+        if(asMp3.checked) {
+            output = output.concat(" ", "-x --audio-format mp3");
+        }
+        var additionalArguments = getAdditionalArgumentsField().value;
+        output = output.concat(" ", additionalArguments);
+        output = output.concat(" ", urls);
     }
-    var additionalArguments = getAdditionalArgumentsField().value;
-    output = output.concat(" ", additionalArguments);
-    output = output.concat(" ", urls);
     readyCommand.innerHTML = output;
 }
 

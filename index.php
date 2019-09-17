@@ -35,7 +35,7 @@
                 <div id="readyCommand"></div>
             </p>
             <p>
-                <button  class="btn btn-primary" id="submitButton">Go!</button>
+                <button  class="btn btn-primary" id="submitButton">Execute!</button>
             </p>
 
             <h3>Progress:</h3>
