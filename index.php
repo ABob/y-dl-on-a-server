@@ -14,6 +14,7 @@
 	</head>
 	<body>
         <div class="container">
+            <div id="messageBox" class="alert alert-danger" role="alert" hidden></div>
             <h1>Video Downloads and Audio Conversions</h1>
 
             <label for="VideoLink">

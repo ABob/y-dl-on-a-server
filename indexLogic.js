@@ -26,6 +26,7 @@ window.onload = function() {
 }
 
 function main() {
+    doAccessChecks();
     setupSubmitButtonAction();
     setupCommandBuilder();
     mirrorInput();
@@ -262,5 +263,17 @@ function cloneModalButtonPrototype() {
     var cloned = original.cloneNode(true);
     cloned.classList.remove("hidden");
     return cloned;
+}
+
+function doAccessChecks() {
+    sendAjaxJsonRequest("check.php", "GET", null, function(ajaxResponse) {
+        var errors = JSON.parse(ajaxResponse.responseText);
+        var joinedMessages = errors.join("<br>");
+        if (joinedMessages != "") {
+            var msgBox = document.getElementById("messageBox");
+            msgBox.innerHTML = joinedMessages;
+            msgBox.hidden = false;
+        }
+    });
 }
 

@@ -4,6 +4,7 @@ $downloadFolder = 'dls';
 $tempFolder = 'temp';
 $logFileSuffix = ".log.txt";
 $metaFileSuffix = ".meta.txt";
+$rssFeedFile = $tempFolder."/genrss.xml";
 
 $logPath = "log.monitor.txt";
 $log = fopen($logPath, "a");
@@ -25,6 +26,11 @@ function getAbsoluteDownloadFolderPath() {
 function getRelativeTempFolderPath() {
     global $tempFolder;
     return $tempFolder;
+}
+
+function getRelativeRssFilePath() {
+    global $rssFeedFile;
+    return $rssFeedFile;
 }
 
 function getAbsoluteTempFolderPath() {

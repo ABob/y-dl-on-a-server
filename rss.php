@@ -2,8 +2,8 @@
 require 'utils.php';
 require 'xmlwriter.php';
 
-define("XmlFilePath", "genrss.xml");
-define("DownloadFolderPath", "dls");
+define("XmlFilePath", getRelativeRssFilePath());
+define("DownloadFolderPath", getRelativeDownloadFolderPath());
 define("RssFeedTitle", "y-dl Rss Feed");
 
 generateRssFeedFile();
