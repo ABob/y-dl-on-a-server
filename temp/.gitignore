@@ -1,0 +1,3 @@
+i# Ignore everything in this directory. Except this file. It should stay empty. Later, some dynamically created files will be stored in here.
+*
+!.gitignore
