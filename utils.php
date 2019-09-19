@@ -6,8 +6,9 @@ $logFileSuffix = ".log.txt";
 $metaFileSuffix = ".meta.txt";
 $rssFeedFile = $tempFolder."/genrss.xml";
 
-$logPath = "log.monitor.txt";
-$log = fopen($logPath, "a");
+$logPath = $tempFolder."/log.monitor.txt";
+
+initLog($logPath);
 
 function getScriptPath() {
     return dirname($_SERVER['SCRIPT_FILENAME']);
@@ -117,9 +118,19 @@ function getLogFileSuffix() {
     return $logFileSuffix;
 }
 
+function initLog($logFilePath) {
+    if(is_writable($logFilePath)) {
+    return fopen($logFilePath, "a");
+    } else {
+        return false;
+    }
+}
+
 function doLog($message) {
     global $log;
-    fputs($log,$message."\n"); 
+    if ($log != false) {
+        fputs($log,$message."\n"); 
+    }
 }
 
 //from https://stackoverflow.com/a/834355

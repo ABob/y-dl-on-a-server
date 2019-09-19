@@ -5,10 +5,10 @@ const READ = "read";
 const WRITE = "write";
 
 $accessMatrix = array(
-    getRelativeDownloadFolderPath() => WRITE,
-    getRelativeDownloadFolderPath() => READ,
-    getRelativeTempFolderPath() => WRITE,
-    getRelativeTempFolderPath() => READ
+    new Check(getRelativeDownloadFolderPath(), WRITE),
+    new Check(getRelativeDownloadFolderPath(), READ),
+    new Check(getRelativeTempFolderPath(), WRITE),
+    new Check(getRelativeTempFolderPath(), READ)
 );
 
 echo json_encode(checkAllFiles());
@@ -17,8 +17,8 @@ function checkAllFiles() {
     global $accessMatrix;
     $result = array();
 
-    foreach($accessMatrix as $path => $mode) {
-        $msg = checkFile($path, $mode);
+    foreach($accessMatrix as $check) {
+        $msg = checkFile($check->path, $check->mode);
         if(!empty($msg)) {
             array_push($result, $msg);
         }
@@ -45,5 +45,14 @@ function checkFile($filePath, $mode) {
     }
 
     return $msg;
+}
+
+class Check {
+    public $path;
+    public $mode;
+    function __construct($path, $mode) {
+        $this->path = $path;
+        $this->mode = $mode;
+    }
 }
 ?>
