@@ -13,7 +13,8 @@ FEATURES:
   * Get status updates of running downloads
   * automatically generated RSS feed to download/watch/hear your downloaded files over a podcast app (for this, I recommend AntennaPod)
 
-To use it, just copy all files/folders in a directory on your web server. You need youtube-dl and php5 to be installed on your server. Also, you have to grant write permissions or change ownership of the "/dls" subfolder so the webserver can write the downloaded files in there (for example with: "chown -R YOUR_WEBSERVER_USER:YOUR_WEBSERVER_USER dls").
-The project uses Twitters Bootstrap (and with it: JQuery) to create the website. They are included as files in the repository, but you can link CDN distributed files too, of course. It should work without them nevertheless.
+INSTALLATION:
+To use it, just copy all files/folders in a directory on your web server. You need youtube-dl and php5 (php7 works propably too) to be installed on your server. Also, you have to grant write and read permissions or change ownership of the "dls" and "temp" subfolder so the webserver can write the downloaded files in there (for example with: "chown -R YOUR_WEBSERVER_USER:YOUR_WEBSERVER_USER dls").
+The project uses Twitters Bootstrap (and with it: JQuery) to create the website. They are included as files in the repository, but you can link CDN distributed files too, of course.
 
 I have some additional features in mind that will probably be added in the near future, as well as an app for android devices (already in progress) for easier access/handling on smartphones.
