@@ -5,6 +5,7 @@ require 'xmlwriter.php';
 define("XmlFilePath", getRelativeRssFilePath());
 define("DownloadFolderPath", getRelativeDownloadFolderPath());
 define("RssFeedTitle", "y-dl Rss Feed");
+define("RssFeedIcon", "img/icon.png");
 
 generateRssFeedFile();
 printRssFeedFile();
@@ -128,6 +129,12 @@ function timestampToFormattedDate($timestamp, $format) {
 function createRssFile($scriptPathRelativeUrl, $allDownloadedFilesWithAbsolutePaths) {
     $feedWriter = new rssFeedWriter(XmlFilePath);
     $feedWriter->openRssFeed(RssFeedTitle, $scriptPathRelativeUrl);
+
+    if(defined('RssFeedIcon') && !empty(RssFeedIcon)) {
+        $feedWriter->setIcon(addRelativeScriptUrlToFileName($scriptPathRelativeUrl, RssFeedIcon),
+            RssFeedTitle,
+            $scriptPathRelativeUrl);
+    }
 
     insertDownloadedFilesAsFeedItems($feedWriter, $allDownloadedFilesWithAbsolutePaths);
 

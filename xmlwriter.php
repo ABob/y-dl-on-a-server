@@ -38,6 +38,15 @@
             $this->appendElementToXml("link", $channelUrl);
         }
 
+        public function setIcon ($iconUrl, $title, $linkedTarget) {
+            //Note: $iconUrl must be a jpg, gif or png file
+            $this->xmlWriter->startElement("image");
+            $this->appendElementToXml("url", $iconUrl);
+            $this->appendElementToXml("title", $title);
+            $this->appendElementToXml("link", $linkedTarget);
+            $this->xmlWriter->endElement();
+        }
+
         public function closeRssFeed () {
             $this->closeAllOpenElements();
             $this->xmlWriter->endDocument();
