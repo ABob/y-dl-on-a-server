@@ -5,7 +5,7 @@ require 'xmlwriter.php';
 define("XmlFilePath", getRelativeRssFilePath());
 define("DownloadFolderPath", getRelativeDownloadFolderPath());
 define("RssFeedTitle", "y-dl Rss Feed");
-define("RssFeedIcon", "img/icon.png");
+define("RssFeedIcon", "img/icon.jpg");
 
 generateRssFeedFile();
 printRssFeedFile();
