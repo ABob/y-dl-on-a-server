@@ -1,6 +1,7 @@
 var STATUSENTRY_CLASSNAME_MESSAGE = "message";
 var STATUSENTRY_CLASSNAME_NAME = "name";
 var STATUSENTRY_CLASSNAME_DATE = "date";
+var FINISHED_STATE = "Finished";
 
 window.onload = function() {
     importScript("utils.js", main);
@@ -122,17 +123,20 @@ function getStatusAreaBody() {
 }
 
 function createStatusEntry(id) {
-    //var statusEntry = document.createElement('tr');
     var statusEntry = cloneModalButtonPrototype();
     statusEntry.id = id;
-    statusEntry.addEventListener('click', function() {showDetails(this.id);} );
+    statusEntry.addEventListener('click', function() {
+        if(!getStatusFor(this.id).includes(FINISHED_STATE)) {
+            fetchDetails(event, this.id);
+        }
+    });
     submitButton.addEventListener('click', requestDownload);
 
     var dateSection = createStatusEntryDateSection();
     appendChild(dateSection, statusEntry);
 
-    //var nameSection = createStatusEntryNameSection();
-    //appendChild(nameSection, statusEntry);
+    var nameSection = createStatusEntryNameSection();
+    appendChild(nameSection, statusEntry);
 
     var messageSection = createStatusEntryMessageSection();
     appendChild(messageSection, statusEntry);
@@ -142,18 +146,27 @@ function createStatusEntry(id) {
 
     var statusArea = getStatusAreaBody();
     statusArea.appendChild(statusEntry, statusArea);
-    //statusArea.innerHTML = statusEntry.outerHTML + statusArea.innerHTML;
 }
 
-function showDetails(id) {
+function fetchDetails(event, id) {
     var obj = {};
     obj["id"] = id;
     var json = JSON.stringify(obj);
     sendAjaxJsonRequest("details.php", "POST", json, function(response) {
+        var title = getNameFor(id);
         document.getElementById("modalBody").innerHTML = response.responseText;
-        document.getElementById("modalTitleIdSection").innerHTML = id;
-        document.getElementById("modalTitleDateSection").innerHTML = getDateFor(id);
+        document.getElementById("modalTitleSection").innerHTML = title != null ? title : id;
+        document.getElementById("modalDateSection").innerHTML = getDateFor(id);
+        document.getElementById("modalIdSection").innerHTML = id;
     });
+}
+
+function findTitle(text) {
+    var matches = text.match("/^TITLE:(.*)/m");
+    if(matches != null) {
+        return matches[1];
+    }
+    return null;
 }
 
 function createStatusEntryMessageSection() {
@@ -170,7 +183,7 @@ function createStatusEntryNameSection() {
 
 function setInitialStateDescription(id, date) {
     setStatusEntryDate(id, date.toLocaleString("de-DE"));
-
+    setStatusEntryName(id, "???");
     setStatusEntryMessage(id, "Pending...");
 }
 
@@ -179,13 +192,21 @@ function setStatusEntryMessage(id, message) {
     messageSection.innerHTML = message;
 }
 
-function getDateFor(id) {
-    return getStatusEntryElement(id, STATUSENTRY_CLASSNAME_DATE).innerHTML;
+function getStatusFor(id) {
+    return getStatusEntryElement(id, STATUSENTRY_CLASSNAME_MESSAGE).innerHTML;
 }
 
 function setStatusEntryName(id, name) {
     var nameSection = getStatusEntryElement(id, STATUSENTRY_CLASSNAME_NAME);
     nameSection.innerHTML = name;
+}
+
+function getNameFor(id) {
+    return getStatusEntryElement(id, STATUSENTRY_CLASSNAME_NAME).innerHTML;
+}
+
+function getDateFor(id) {
+    return getStatusEntryElement(id, STATUSENTRY_CLASSNAME_DATE).innerHTML;
 }
 
 function setStatusEntryDate(id, date) {
@@ -230,11 +251,20 @@ function addStatusMonitor(id) {
     eventSource.addEventListener("ERROR", function(event){
         setStatusEntryMessage(id, JSON.parse(event.data).message);
         removeSpinnerOf(id);
+        eventSource.close();
     });
 
     eventSource.addEventListener("SUCCESS", function(event){
-        setStatusEntryMessage(id, JSON.parse(event.data).message);
+        var fileName = JSON.parse(event.data).message;
+        var text = FINISHED_STATE;
+        if(fileName){
+            text = "<a href='dls/"+fileName+"'>"+ text + "</a>";
+            removeStatusEntryModalDialogConnection(id);
+        }
+
+        setStatusEntryMessage(id, text);
         removeSpinnerOf(id);
+        eventSource.close();
     });
 
     eventSource.addEventListener("STATE", function(event){
@@ -245,6 +275,16 @@ function addStatusMonitor(id) {
         timestampAsString = JSON.parse(event.data).message;
         fillStatusEntryDate(id, Number(timestampAsString));
     });
+
+    eventSource.addEventListener("TITLE", function(event){
+        name = JSON.parse(event.data).message;
+        setStatusEntryName(id, name);
+    });
+}
+
+function removeStatusEntryModalDialogConnection(id) {
+    var statusEntry = getStatusEntry(id);
+    statusEntry.removeAttribute("data-toggle");
 }
 
 function showRunningDownloads() {

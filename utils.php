@@ -8,7 +8,8 @@ $rssFeedFile = $tempFolder."/genrss.xml";
 
 $logPath = $tempFolder."/log.monitor.txt";
 
-initLog($logPath);
+# uncomment this line to turn on log
+#$log = initLog($logPath);
 
 function getScriptPath() {
     return dirname($_SERVER['SCRIPT_FILENAME']);
@@ -52,6 +53,10 @@ function getKeywordForCreateEvent() {
     return "CREATION";
 }
 
+function getKeywordForTitleEvent() {
+    return "TITLE";
+}
+
 function getKeywordForStateEvent() {
     return "STATE";
 }
@@ -66,6 +71,10 @@ function getKeywordForErrorEvent() {
 
 function getKeywordForCreationDate() {
     return "CREATED";
+}
+
+function getKeywordForTitle() {
+    return "TITLE";
 }
 
 function createFileList(){
@@ -113,6 +122,21 @@ function buildMetaFilePath($id){
     return getAbsoluteTempFolderPath() ."/". $id .$metaFileSuffix;
 }
 
+function appendToMetaFile($text) {
+    appendToFile(buildMetaFilePath($id, $text));
+}
+
+function appendToFile($filePath, $text) {
+    doLog("Appending: '". $text ."' to file ". $filePath);
+    $file = fopen($filePath, "a") or die("Unable to open file!");
+    if(flock($file, LOCK_EX)) {
+        fputs($file, $text);
+        doLog("Done writing");
+    }
+    fclose($file);
+    doLog("Closed file");
+}
+
 function getLogFileSuffix() {
     global $logFileSuffix;
     return $logFileSuffix;
@@ -120,7 +144,7 @@ function getLogFileSuffix() {
 
 function initLog($logFilePath) {
     if(is_writable($logFilePath)) {
-    return fopen($logFilePath, "a");
+        return fopen($logFilePath, "a");
     } else {
         return false;
     }
@@ -141,6 +165,21 @@ function startsWith($haystack, $needle) {
 
 function contains($haystack, $needle) {
     return strpos($haystack, $needle) !== false;
+}
+
+function getProtocol() {
+    return isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+}
+
+function getOwnUrl() {
+    return getProtocol()."://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+}
+
+function getScriptDirectoryUrl($fileConstant) {
+    $scriptFileName = basename($fileConstant);
+    $fullUrl = getOwnUrl();
+    $fileNamePosition = strpos($fullUrl, $scriptFileName);
+    return substr($fullUrl, 0, $fileNamePosition);
 }
 
 ?>

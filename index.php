@@ -47,6 +47,7 @@
                         <thead>
                             <tr>
                                 <th>Date</th>
+                                <th>Name</th>
                                 <th>State</th>
                                 <th><!-- Leere Spalte für Spinner --></th>
                             </tr>
@@ -72,8 +73,9 @@
                 <div class="modal-content">
                   <div class="modal-header">
                     <div class="modal-title">
-                        <h5>Details of download <span id=modalTitleIdSection></span></h5>
-                        <small class="modal-title" >Started at <span id=modalTitleDateSection></span></small>
+                        <h5>Details of download <span id=modalTitleSection></span></h5>
+                        <small class="modal-title" >Started at <span id=modalDateSection></span></small><br>
+                        <small class="modal-title" >ID: <span id=modalIdSection></span></small>
                     </div>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                   </div>

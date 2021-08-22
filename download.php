@@ -4,9 +4,9 @@ require "utils.php";
 $success = false;
 $error = "Request format error";
 $downloadId = uniqid("id", true);
-$cmd = buildCommand();
-
 $json = processRequest();
+$cmd = buildCommand($json);
+
 $finalCmd = execInBackground($cmd, $downloadId);
         $success = true;
         $error = "";
@@ -19,11 +19,11 @@ $tempId = $json->tempId;
 $json->finalCmd = $finalCmd;
 $answer = buildAnswer($success, $downloadId, $tempId, $error, $json);
 sendAnswer($answer);
+retrieveMetaData($downloadId, $metaFile, $json);
 
-function buildCommand() {
+function buildCommand($json) {
     if($_SERVER['REQUEST_METHOD'] == "POST"){
         $output_dir = getAbsoluteDownloadFolderPath()."/%(title)s.%(ext)s";
-        $json = processRequest();
 
         #program
         $cmd = "youtube-dl ";
@@ -43,7 +43,7 @@ function buildCommand() {
         $links = $json->links;
 
         #strip newlines and double (or more) whitespaces from link input
-        $links = trim(preg_replace('/\s\s+/', ' ', $links));
+        $links = joinUrls($links);
 
         #append links
         $cmd .= $links ." ";
@@ -85,18 +85,24 @@ function execInBackground($cmd, $downloadId) {
 } 
 
 function saveCreationDate($date, $pathToMetaFile) {
-    doLog("Saving creation date ". $date ." in file ". $pathToMetaFile);
-    $file = fopen($pathToMetaFile, "w") or die("Unable to open file!");
-    if($file != false) {
-        fputs($file, getKeywordForCreationDate() .": ". $date. PHP_EOL);
-        doLog("Done writing");
-        fclose($file);
-        doLog("Closed file");
-    }
+    $text = getKeywordForCreationDate() .": ". $date. PHP_EOL;
+    appendToFile($pathToMetaFile, $text);
 }
 
 function appendKeywordToLog($cmd, $keyword) {
     return $cmd .= " --exec 'echo ". $keyword ." '";
 }
 
+function retrieveMetaData($downloadId, $metaFile, $json) {
+    $urls = joinUrls($json->links);
+    $encodedUrls = urlencode($urls);
+    $metadata = file_get_contents(getScriptDirectoryUrl(__FILE__)."/title.php?url=".$encodedUrls);
+    $title = json_decode($metadata)->{'title'};
+    $metaFileAppendix = getKeywordForTitle() . ": " . $title;
+    appendToFile($metaFile, $metaFileAppendix);
+}
+
+function joinUrls($linksSeparatedByNewlines) {
+    return trim(preg_replace('/\s\s+/', ' ', $linksSeparatedByNewlines));
+}
 ?>

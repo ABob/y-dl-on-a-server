@@ -29,20 +29,15 @@ function sendCreationDate($id, $pathToMetaFile) {
 }
 
 function extractDate($filePath) {
-    doLog("Extract date from ". $filePath);
-    $file = fopen($filePath, "r") or die("Unable to open file!");
-    // Output one line until end-of-file
-    while(!feof($file)) {
-        $line = fgets($file);
-        $date = parseDate($line);
-        doLog("Parsed date ". $date);
-        if(!empty($date)) {
-            break;
+    $parseFunction = function($line) {
+        if(startsWith($line, getKeywordForCreationDate())) {
+            $date = trim(explode(":", $line)[1]);
+            return $date;
         }
-    }
-    fclose($file);
-    doLog("Found date ". $date);
-    return empty($date) ? 0 : $date;
+        return 0;
+    };
+    $value = parseFromFile($filePath, $parseFunction, "date");
+    return empty($value) ? 0 : $value;
 }
 
 function parseDate($line) {
@@ -56,7 +51,13 @@ function parseDate($line) {
 function sendStateUntilFinish($id, $pathToLogFile){
     $currentState = new State();
     $fileStats = null;
+    $sentTitle = false;
+
     while (!isEndingState($currentState)) {
+        if(!$sentTitle) {
+            $sentTitle = extractTitle($id);
+        }
+
         $newFileStats = getFileStats($pathToLogFile);
         if(fileHasChanged($fileStats, $newFileStats)){
             $currentState = extractState($pathToLogFile, $currentState);
@@ -76,6 +77,51 @@ function sendStateUntilFinish($id, $pathToLogFile){
         sleep(3);
     }
     doLog("Finished sending states. Stream can get closed now");
+}
+
+function extractTitle($id) {
+    $foundTitle = false;
+    $title = parseTitleFromMetaFile($id);
+    if($title != null) {
+        sendTitle($id, $title);
+        $foundTitle = true;
+    }
+    return $foundTitle;
+}
+
+function parseTitleFromMetaFile($id) {
+    $filePath = buildMetaFilePath($id);
+
+    $parseFunction = function ($line) {
+        if(startsWith($line, getKeywordForTitle())) {
+            $title = trim(explode(":", $line)[1]);
+            return $title;
+        }
+        return null;
+    }; 
+
+    $value = parseFromFile($filePath, $parseFunction, "title");
+    return empty($value) ? null : $value;
+}
+
+
+function parseFromFile($filePath, $parseFunction, $logWord) {
+    doLog("Extract $logWord from ". $filePath);
+    $file = fopen($filePath, "r") or die("Unable to open file!");
+    if(flock($file, LOCK_SH)) {
+        // Output one line until end-of-file
+        while(!feof($file)) {
+            $line = fgets($file);
+            $parsed = $parseFunction($line);
+            doLog("Parsed $logWord ". $parsed);
+            if(!empty($parsed)) {
+                break;
+            }
+        }
+    }
+    fclose($file);
+    doLog("Found $logWord ". $parsed);
+    return $parsed;
 }
 
 function getIdFromRequest() {
@@ -138,7 +184,7 @@ function parseState($line, $oldState) {
 }
 
 function isEndingState($state) {
-    doLog("Is Ending state? $state is ". $state);
+    doLog("Is Ending state? STATE is ". $state);
     return $state->hasState(State::ERROR) || $state->hasState(State::FINISH);
 }
 
@@ -150,6 +196,10 @@ function sendCreate($id, $date){
     send(getKeywordForCreateEvent(), $id, $date);
 }
 
+function sendTitle($id, $title){
+    send(getKeywordForTitleEvent(), $id, $title);
+}
+
 function sendState($id, $state){
     send(getKeywordForStateEvent(), $id, $state);
 }
@@ -159,7 +209,23 @@ function sendError($id, $state){
 }
 
 function sendSuccess($id, $state){
-    send(getKeywordForSuccessEvent(), $id, $state);
+    $fileName = parseResultFileName($id);
+    if(empty($fileName)) {
+        $fileName = "";
+    }
+    send(getKeywordForSuccessEvent(), $id, $fileName);
+}
+
+function parseResultFileName($id) {
+    $filePath = buildLogFilePath($id);
+    $parseFunction = function ($line) {
+        $pattern = "/Finished .*\/(.*\..*$)/";
+        if(preg_match($pattern, $line, $matches)){
+            return $matches[1];
+        }
+        return null;
+    }; 
+    return parseFromFile($filePath, $parseFunction, "result file name");
 }
 
 function send($eventType, $id, $state){
