@@ -44,18 +44,22 @@ function requestDownload() {
             handleAnswer(response.responseText);
         };
         var obj = {};
-        obj["links"] = getUrls();
+        var urls = getReformattedUrls();
         obj["asMp3"] = getAsMp3Field().checked;
         obj["additionalArguments"] = getAdditionalArgumentsField().value;
         var date = new Date();
         obj["date"] = date.getTime();
-        var tempId = date.getTime();
-        obj["tempId"] = tempId;
-        var json = JSON.stringify(obj);
-        sendAjaxJsonRequest("download.php", "POST", json, onLoadEventListener);
 
-        createStatusEntry(tempId);
-        setInitialStateDescription(tempId, date);
+        urls.split(/\s+/).forEach(function(singleUrl, index) {
+            obj["links"] = singleUrl;
+            var tempId = date.getTime() + "_" + index;
+            obj["tempId"] = tempId;
+            var json = JSON.stringify(obj);
+            sendAjaxJsonRequest("download.php", "POST", json, onLoadEventListener);
+
+            createStatusEntry(tempId);
+            setInitialStateDescription(tempId, date);
+        });
 }
 
 function handleAnswer(jsonAnswer) {
@@ -84,9 +88,7 @@ function setupCommandBuilder() {
 }
 
 function mirrorInput() {
-    var urls = getUrls();
-    urls = urls.replace(/\n/g, " ");
-    urls = urls.replace(/,/g, " ");
+    var urls = getReformattedUrls();
 
     var output = "-";
     if (urls.trim() != "") {
@@ -108,6 +110,13 @@ function getLinksField() {
 
 function getUrls() {
     return getLinksField().value;
+}
+
+function getReformattedUrls() {
+    var urls = getUrls().trim();
+    urls = urls.replace(/\n/g, " ");
+    urls = urls.replace(/,/g, " ");
+    return urls;
 }
 
 function getAdditionalArgumentsField(){

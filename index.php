@@ -18,7 +18,7 @@
             <h1>Video Downloads and Audio Conversions</h1>
 
             <label for="VideoLink">
-                <textarea class="form-control" rows="5" cols="50" id="links" name="links" placeholder="Links to videos, separated through commas or new lines." required></textarea>
+                <textarea class="form-control" rows="5" cols="50" id="links" name="links" placeholder="Links to videos, separated through spaces, commas or new lines." required></textarea>
             </label>
             <p>
                 <label for="asMp3">
